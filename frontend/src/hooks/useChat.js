@@ -1,6 +1,6 @@
 ﻿/**
  * useChat.js
- * Comprehensive chat state management with token streaming, multi-session persistence,
+ * Enhanced chat state management with clean refresh handling, multi-session persistence,
  * in-flight request protection, voice-reactive integration, and non-destructive retry handling.
  */
 
@@ -14,19 +14,28 @@ export function useChat() {
   const [currentSessionId, setCurrentSessionId] = useState(() => {
     const saved = chatStorage.getActiveSessionId();
     const existing = chatStorage.getSession(saved);
-    if (existing) return existing.id;
-    const initial = chatStorage.createSession();
-    return initial.id;
+
+    // If existing session is valid and has complete conversation, load it
+    // If it only has unanswered/failed messages, start a fresh session on reload
+    if (existing && existing.messages && existing.messages.length > 0) {
+      const hasAssistantReply = existing.messages.some((m) => m.role === "assistant" && m.content);
+      if (hasAssistantReply) {
+        return existing.id;
+      }
+    }
+
+    const freshSession = chatStorage.createSession();
+    return freshSession.id;
   });
 
-  const activeSession = sessions.find((s) => s.id === currentSessionId) || null;
+  const activeSession = chatStorage.getSession(currentSessionId) || null;
 
   const [messages, setMessages] = useState(() => activeSession?.messages || []);
   const [emotion, setEmotion] = useState(() => activeSession?.emotion || { label: "calm", valence: 0.0, arousal: 0.18 });
   const [activeMood, setActiveMood] = useState(() => activeSession?.activeMood || chatStorage.getSavedMood());
   const [isThinking, setIsThinking] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [error, setError] = useState(null); // { message: string, isRateLimit: boolean }
+  const [error, setError] = useState(null);
   const [voiceState, setVoiceState] = useState(VoiceState.IDLE);
 
   const abortControllerRef = useRef(null);
@@ -256,7 +265,6 @@ export function useChat() {
   // Retry last user message
   const retry = useCallback(() => {
     if (!lastUserMessageRef.current) return;
-    // Pop the last failed assistant message if it exists empty
     setMessages((prev) => {
       const last = prev[prev.length - 1];
       if (last && last.role === "assistant" && !last.content) {

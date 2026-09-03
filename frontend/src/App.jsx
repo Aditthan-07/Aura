@@ -49,6 +49,14 @@ export default function App() {
       <header className="app__header">
         <span className="app__wordmark">aura</span>
         <span className="app__tagline">an emotionally expressive companion</span>
+        <button
+          type="button"
+          className="header__btn-new-chat"
+          onClick={newSession}
+          title="Start a fresh chat"
+        >
+          + New Chat
+        </button>
       </header>
 
       <EmotionReadout emotion={emotion} />

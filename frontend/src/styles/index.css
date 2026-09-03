@@ -94,6 +94,26 @@ input {
   letter-spacing: 0.02em;
 }
 
+.header__btn-new-chat {
+  margin-left: 0.75rem;
+  background: rgba(94, 234, 212, 0.12);
+  border: 1px solid rgba(94, 234, 212, 0.3);
+  color: #5eead4;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.header__btn-new-chat:hover {
+  background: rgba(94, 234, 212, 0.25);
+  border-color: #5eead4;
+  box-shadow: 0 0 10px rgba(94, 234, 212, 0.3);
+}
+
 .emotion-readout {
   position: absolute;
   top: var(--space-3);
