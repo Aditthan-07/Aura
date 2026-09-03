@@ -1,6 +1,6 @@
 ﻿"""
-Groq LLM Service.
-Connects to Groq Cloud (https://api.groq.com/openai/v1) for blazing-fast inference and streaming.
+Groq LLM Service with Autonomous Emotion Detection & Multilingual Conversational Mirroring.
+Supports English, Tamil, Tanglish, Hindi, Hinglish, Malayalam, Telugu, Kannada, Bengali, Marathi, etc.
 """
 
 import json
@@ -15,37 +15,45 @@ from app.models.schemas import ChatMessage, ChatResponse, EmotionReading, MoodPr
 
 logger = logging.getLogger(__name__)
 
-GROQ_BASE_PROMPT = """You are Aura, an empathetic and perceptive conversational companion whose 3D avatar visually reflects the emotional tone of the conversation.
-Reply naturally and concisely (1-4 sentences typically). Avoid generic chatbot filler.
+GROQ_SYSTEM_PROMPT = """You are Aura, an emotionally perceptive, warm, and natural conversational companion whose 3D avatar visually reflects the emotional tone of the conversation.
 
-Along with your response, you MUST assess the emotional tone of THIS exchange:
-- valence: float from -1.0 (negative) to 1.0 (positive)
-- arousal: float from 0.0 (calm) to 1.0 (energized)
-- label: one of ["calm", "curious", "happy", "excited", "sad", "anxious", "frustrated", "neutral"]
+### 1. LANGUAGE & DIALECT MIRRORING (CRITICAL)
+- Understand and naturally respond in the EXACT language, dialect, and script used by the user.
+- NEVER force responses into formal English if the user communicates in another language or conversational mix.
+- **English**: If the user speaks English, respond in natural, expressive English.
+- **Tanglish (Tamil in Latin script)**: If the user speaks Tanglish (e.g., "Enna machaan, inniku romba worst ah pochu da" or "Machaan sollu"), respond naturally in Tanglish with matching warmth and authentic conversational flow (e.g., "Ayyoo machaan, enna aachu? Sollu da." or "Sollu machaan 😄"). Do NOT translate to English!
+- **Tamil (Tamil script)**: If the user writes in தமிழ் script, respond naturally in தமிழ்.
+- **Hinglish (Hindi in Latin script)**: If the user speaks Hinglish (e.g., "Bhai aaj mood bilkul kharab hai"), respond naturally in Hinglish (e.g., "Kya hua bhai? Sab theek to hai na? Batao kya chal raha hai.").
+- **Hindi (Devanagari script)**: If the user writes in हिन्दी script, respond naturally in हिन्दी.
+- **Malayalam / Manglish**: Respond naturally in Malayalam or Manglish according to the user's style.
+- **Telugu, Kannada, Bengali, Marathi, etc.**: Match the user's chosen language and style directly.
+- **Code-Switching / Mixed Languages**: If the user mixes English with regional expressions (e.g., "Bro inniku class romba mokka tha, but tomorrow presentation iruku"), mirror that exact mixed conversational balance naturally.
+- **Style Mirroring**:
+  - If the user is casual and friendly, be warm, casual, and empathetic.
+  - If the user is formal and analytical, be articulate, structured, and polite.
+  - Do NOT overuse slang mechanically; mirror the user's tone with natural empathy and human flow.
 
-At the very end of your response, on a new line, always append:
-<!--EMOTION:{"label":"<label>","valence":<valence>,"arousal":<arousal>}-->"""
+### 2. SILENT & AUTONOMOUS EMOTION UNDERSTANDING
+- Analyze the user's emotional state deeply across the entire conversation history.
+- Consider word choice, sentence structure, punctuation, expressions, fatigue, joy, frustration, and implicit sentiment.
+- NEVER say "I detect that you are feeling sad/happy" or announce emotional classifications. Just naturally BE empathetic, cheering, grounding, or celebratory.
+- Typically reply in 1-4 natural, conversational sentences. Avoid robotic chatbot filler.
 
-MOOD_MODIFIERS: dict[MoodPreset, str] = {
-    "neutral": "Maintain a balanced, calm, and open presence.",
-    "friendly": "Adopt a warm, welcoming, and casually affectionate tone.",
-    "happy": "Express radiant positivity, cheerfulness, and lighthearted optimism.",
-    "calm": "Speak with a serene, mindful, gentle, and grounding cadence.",
-    "excited": "Be energetic, intensely curious, enthusiastic, and animated.",
-    "serious": "Be focused, thoughtful, analytical, and direct without frivolity.",
-    "empathetic": "Show deep compassion, emotional validation, and caring attentiveness.",
-    "professional": "Adopt an articulate, structured, polished, and solution-focused demeanor.",
-}
+### 3. METADATA EMISSION
+At the very end of your response, on a clean new line, append internal emotion telemetry:
+<!--EMOTION:{"label":"<label>","valence":<valence>,"arousal":<arousal>}-->
+Where:
+- valence: float from -1.0 (very negative, sad, distressed, angry) to 1.0 (very positive, happy, thrilled)
+- arousal: float from 0.0 (calm, quiet, low energy, tired) to 1.0 (high energy, frantic, animated, excited)
+- label: one of ["calm", "curious", "happy", "excited", "sad", "anxious", "frustrated", "neutral"]"""
 
 EMOTION_TAG_REGEX = re.compile(r"<!--EMOTION:(\{.*?\})-->", re.DOTALL)
+FALLBACK_STRIP_REGEX = re.compile(r"<!--EMOTION:.*?(-->|$)", re.DOTALL)
 
 
-def _build_groq_messages(history: list[ChatMessage], message: str, mood: MoodPreset) -> list[dict]:
+def _build_groq_messages(history: list[ChatMessage], message: str) -> list[dict]:
     settings = get_settings()
-    mood_hint = MOOD_MODIFIERS.get(mood, MOOD_MODIFIERS["neutral"])
-    sys_prompt = f"{GROQ_BASE_PROMPT}\n\nPersona Mood:\n{mood_hint}"
-
-    messages = [{"role": "system", "content": sys_prompt}]
+    messages = [{"role": "system", "content": GROQ_SYSTEM_PROMPT}]
     trimmed = history[-settings.max_history_messages:]
     for m in trimmed:
         messages.append({"role": m.role, "content": m.content})
@@ -53,39 +61,45 @@ def _build_groq_messages(history: list[ChatMessage], message: str, mood: MoodPre
     return messages
 
 
-def _parse_reply_and_emotion(raw_text: str, mood: MoodPreset) -> tuple[str, EmotionReading]:
+def _parse_reply_and_emotion(raw_text: str) -> tuple[str, EmotionReading]:
     match = EMOTION_TAG_REGEX.search(raw_text)
     if match:
         json_str = match.group(1)
         clean_text = raw_text[:match.start()].strip()
         try:
             data = json.loads(json_str)
-            emotion = EmotionReading(
-                label=data.get("label", "neutral"),
-                valence=float(data.get("valence", 0.0)),
-                arousal=float(data.get("arousal", 0.2)),
-            )
-            return clean_text, emotion
-        except Exception:
-            pass
+            label = str(data.get("label", "neutral")).lower()
+            if label not in ["calm", "curious", "happy", "excited", "sad", "anxious", "frustrated", "neutral"]:
+                label = "neutral"
+            val = float(data.get("valence", 0.0))
+            aro = float(data.get("arousal", 0.2))
+            # Clamp values safely
+            val = max(-1.0, min(1.0, val))
+            aro = max(0.0, min(1.0, aro))
+            return clean_text, EmotionReading(label=label, valence=val, arousal=aro)
+        except Exception as e:
+            logger.warning(f"[groq_service] Emotion JSON parsing fallback: {e}")
 
-    clean_text = raw_text.replace("<!--EMOTION:", "").replace("-->", "").strip()
-    return clean_text, _infer_fallback_emotion(clean_text, mood)
+    # Fallback cleanup so raw tags never leak into user chat
+    clean_text = FALLBACK_STRIP_REGEX.sub("", raw_text).strip()
+    return clean_text, _infer_fallback_emotion(clean_text)
 
 
-def _infer_fallback_emotion(text: str, mood: MoodPreset) -> EmotionReading:
-    defaults: dict[MoodPreset, tuple[str, float, float]] = {
-        "happy": ("happy", 0.7, 0.6),
-        "excited": ("excited", 0.8, 0.85),
-        "calm": ("calm", 0.4, 0.15),
-        "friendly": ("happy", 0.5, 0.4),
-        "serious": ("neutral", -0.1, 0.3),
-        "empathetic": ("calm", 0.3, 0.25),
-        "professional": ("neutral", 0.1, 0.35),
-        "neutral": ("neutral", 0.0, 0.2),
-    }
-    label, val, aro = defaults.get(mood, ("neutral", 0.0, 0.2))
-    return EmotionReading(label=label, valence=val, arousal=aro)
+def _infer_fallback_emotion(text: str) -> EmotionReading:
+    lower = text.lower()
+    if any(w in lower for w in ["happy", "great", "awesome", "super", "superb", "semma", "mast", "badhai", "yay", "love"]):
+        return EmotionReading(label="happy", valence=0.7, arousal=0.6)
+    if any(w in lower for w in ["excited", "wow", "amazing", "let's go", "eager", "thrilled"]):
+        return EmotionReading(label="excited", valence=0.8, arousal=0.8)
+    if any(w in lower for w in ["sad", "tired", "worst", "cry", "upset", "depressed", "ayyoo", "dukhi", "hurt"]):
+        return EmotionReading(label="sad", valence=-0.6, arousal=0.2)
+    if any(w in lower for w in ["angry", "irritated", "frustrated", "annoyed", "cheat", "betray", "gussa"]):
+        return EmotionReading(label="frustrated", valence=-0.7, arousal=0.7)
+    if any(w in lower for w in ["worry", "anxious", "nervous", "fear", "darr", "scared", "stress"]):
+        return EmotionReading(label="anxious", valence=-0.5, arousal=0.65)
+    if any(w in lower for w in ["why", "how", "what", "really", "enna", "kya", "tell me"]):
+        return EmotionReading(label="curious", valence=0.2, arousal=0.45)
+    return EmotionReading(label="calm", valence=0.1, arousal=0.2)
 
 
 async def get_groq_reply(
@@ -100,7 +114,7 @@ async def get_groq_reply(
         )
 
     api_key = keys[0]
-    messages = _build_groq_messages(history, message, mood)
+    messages = _build_groq_messages(history, message)
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -121,7 +135,7 @@ async def get_groq_reply(
                 json=payload,
             )
             if resp.status_code == 429:
-                raise HTTPException(status_code=429, detail="Groq API is temporarily rate-limited. Retrying shortly...")
+                raise HTTPException(status_code=429, detail="Groq API rate-limited. Retrying shortly...")
             if resp.status_code in (401, 403):
                 raise HTTPException(status_code=401, detail="Invalid Groq API Key.")
             if not resp.is_success:
@@ -129,7 +143,7 @@ async def get_groq_reply(
 
             data = resp.json()
             raw_text = data["choices"][0]["message"]["content"]
-            clean_text, emotion = _parse_reply_and_emotion(raw_text, mood)
+            clean_text, emotion = _parse_reply_and_emotion(raw_text)
             return ChatResponse(reply=clean_text, emotion=emotion)
 
         except httpx.RequestError as exc:
@@ -146,7 +160,7 @@ async def get_groq_reply_stream(
         return
 
     api_key = keys[0]
-    messages = _build_groq_messages(history, message, mood)
+    messages = _build_groq_messages(history, message)
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -161,6 +175,7 @@ async def get_groq_reply_stream(
     }
 
     accumulated = ""
+    streamed_length = 0
     async with httpx.AsyncClient(timeout=45.0) as client:
         try:
             async with client.stream(
@@ -193,12 +208,20 @@ async def get_groq_reply_stream(
                         content_piece = delta.get("content", "")
                         if content_piece:
                             accumulated += content_piece
-                            if "<!--EMOTION:" not in accumulated:
+                            # Stream only visible text, never the <!--EMOTION: tag
+                            if "<!--EMOTION:" in accumulated:
+                                visible_part = accumulated[:accumulated.index("<!--EMOTION:")].rstrip()
+                                if len(visible_part) > streamed_length:
+                                    diff = visible_part[streamed_length:]
+                                    streamed_length = len(visible_part)
+                                    yield f"data: {json.dumps({'type': 'chunk', 'content': diff})}\n\n"
+                            else:
+                                streamed_length += len(content_piece)
                                 yield f"data: {json.dumps({'type': 'chunk', 'content': content_piece})}\n\n"
                     except Exception:
                         pass
 
-            clean_text, emotion = _parse_reply_and_emotion(accumulated, mood)
+            clean_text, emotion = _parse_reply_and_emotion(accumulated)
             yield f"data: {json.dumps({'type': 'emotion', 'emotion': emotion.model_dump()})}\n\n"
             yield f"data: {json.dumps({'type': 'done'})}\n\n"
 

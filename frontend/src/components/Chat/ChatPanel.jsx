@@ -1,14 +1,11 @@
-import MessageList from "./MessageList";
+﻿import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
-import MoodSelector from "../MoodSelector";
 
 export default function ChatPanel({
   messages,
   isThinking,
   isStreaming,
   error,
-  activeMood,
-  onSelectMood,
   voiceState,
   onSend,
   onRetry,
@@ -17,12 +14,6 @@ export default function ChatPanel({
 }) {
   return (
     <div className="chat-panel">
-      <MoodSelector
-        activeMood={activeMood}
-        onSelectMood={onSelectMood}
-        disabled={isThinking || isStreaming}
-      />
-
       <MessageList
         messages={messages}
         isThinking={isThinking}

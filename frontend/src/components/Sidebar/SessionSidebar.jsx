@@ -1,6 +1,4 @@
-import { useState } from "react";
-
-function formatTimestamp(ts) {
+﻿function formatTimestamp(ts) {
   if (!ts) return "";
   const d = new Date(ts);
   const now = new Date();
@@ -12,6 +10,8 @@ function formatTimestamp(ts) {
 }
 
 export default function SessionSidebar({
+  isOpen,
+  onClose,
   sessions,
   currentSessionId,
   onSelectSession,
@@ -19,39 +19,38 @@ export default function SessionSidebar({
   onDeleteSession,
   onClearAll,
 }) {
-  const [isOpen, setIsOpen] = useState(false);
-
   return (
     <>
-      <button
-        type="button"
-        className="sidebar-toggle"
-        onClick={() => setIsOpen(!isOpen)}
-        title={isOpen ? "Close History" : "Conversation History"}
-        aria-label="Toggle Conversation History"
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <line x1="3" y1="12" x2="21" y2="12" />
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="3" y1="18" x2="21" y2="18" />
-        </svg>
-      </button>
+      {isOpen && <div className="sidebar-backdrop" onClick={onClose} />}
 
-      {isOpen && <div className="sidebar-backdrop" onClick={() => setIsOpen(false)} />}
-
-      <aside className={`session-sidebar ${isOpen ? "session-sidebar--open" : ""}`}>
+      <aside className={`session-sidebar ${isOpen ? "session-sidebar--open" : ""}`} aria-hidden={!isOpen}>
         <div className="session-sidebar__header">
-          <h3>Conversations</h3>
-          <button
-            type="button"
-            className="btn-new-chat"
-            onClick={() => {
-              onNewSession();
-              setIsOpen(false);
-            }}
-          >
-            + New Chat
-          </button>
+          <div className="sidebar-header__title">
+            <h3>Conversations</h3>
+            <span className="sidebar-header__count">{sessions.length}</span>
+          </div>
+          <div className="sidebar-header__actions">
+            <button
+              type="button"
+              className="btn-sidebar-new"
+              onClick={() => {
+                onNewSession();
+                onClose();
+              }}
+              title="Start New Chat"
+            >
+              + New
+            </button>
+            <button
+              type="button"
+              className="btn-sidebar-close"
+              onClick={onClose}
+              title="Close Sidebar"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         <div className="session-sidebar__list">
@@ -66,23 +65,34 @@ export default function SessionSidebar({
                   className={`session-item ${isActive ? "session-item--active" : ""}`}
                   onClick={() => {
                     onSelectSession(s.id);
-                    setIsOpen(false);
+                    onClose();
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      onSelectSession(s.id);
+                      onClose();
+                    }
                   }}
                 >
-                  <div className="session-item__info">
-                    <span className="session-item__title">{s.title || "Untitled Chat"}</span>
-                    <span className="session-item__time">{formatTimestamp(s.updatedAt)}</span>
+                  <div className="session-item__content">
+                    <span className="session-item__title">{s.title || "New Conversation"}</span>
+                    <span className="session-item__meta">
+                      {formatTimestamp(s.updatedAt || s.createdAt)}
+                    </span>
                   </div>
                   <button
                     type="button"
                     className="session-item__delete"
-                    title="Delete Conversation"
                     onClick={(e) => {
                       e.stopPropagation();
                       onDeleteSession(s.id);
                     }}
+                    title="Delete Conversation"
+                    aria-label="Delete"
                   >
-                    ×
+                    🗑
                   </button>
                 </div>
               );
@@ -90,7 +100,7 @@ export default function SessionSidebar({
           )}
         </div>
 
-        {sessions.length > 0 && (
+        {sessions.length > 1 && (
           <div className="session-sidebar__footer">
             <button
               type="button"
@@ -98,10 +108,11 @@ export default function SessionSidebar({
               onClick={() => {
                 if (window.confirm("Clear all conversation history?")) {
                   onClearAll();
+                  onClose();
                 }
               }}
             >
-              Clear All History
+              Clear All Conversations
             </button>
           </div>
         )}
