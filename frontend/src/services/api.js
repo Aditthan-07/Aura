@@ -1,9 +1,9 @@
-﻿/**
+/**
  * api.js
  * Frontend HTTP & SSE streaming client for Aura chat API.
  */
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
 
 export class ApiError extends Error {
   constructor(message, status = 500, isRateLimit = false) {
