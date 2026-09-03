@@ -13,6 +13,10 @@ EmotionLabel = Literal[
     "calm", "curious", "happy", "excited", "sad", "anxious", "frustrated", "neutral"
 ]
 
+MoodPreset = Literal[
+    "neutral", "friendly", "happy", "calm", "excited", "serious", "empathetic", "professional"
+]
+
 
 class ChatMessage(BaseModel):
     role: Literal["user", "assistant"]
@@ -22,14 +26,22 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=4000)
     history: list[ChatMessage] = Field(default_factory=list)
+    mood: MoodPreset = Field(default="neutral", description="Selected conversational mood preset")
 
 
 class EmotionReading(BaseModel):
-    label: EmotionLabel
-    valence: float = Field(..., ge=-1.0, le=1.0, description="negative <-> positive")
-    arousal: float = Field(..., ge=0.0, le=1.0, description="calm <-> energized")
+    label: EmotionLabel = "neutral"
+    valence: float = Field(default=0.0, ge=-1.0, le=1.0, description="negative <-> positive")
+    arousal: float = Field(default=0.18, ge=0.0, le=1.0, description="calm <-> energized")
 
 
 class ChatResponse(BaseModel):
     reply: str
     emotion: EmotionReading
+
+
+class StreamChunk(BaseModel):
+    type: Literal["chunk", "emotion", "done", "error"]
+    content: str | None = None
+    emotion: EmotionReading | None = None
+    error: str | None = None
