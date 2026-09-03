@@ -12,7 +12,7 @@ try:
         grok_api_key: str | None = None
         grok_api_keys: str | None = None
         xai_api_key: str | None = None
-        grok_model: str = "grok-2-latest"
+        grok_model: str = "grok-2"
         grok_base_url: str = "https://api.x.ai/v1"
 
         # Gemini Configuration
@@ -50,6 +50,10 @@ try:
             return keys
 
         @property
+        def api_keys_list(self) -> list[str]:
+            return self.grok_keys_list if self.active_provider == "grok" else self.gemini_keys_list
+
+        @property
         def active_provider(self) -> str:
             if self.llm_provider in ("grok", "gemini"):
                 return self.llm_provider
@@ -57,7 +61,7 @@ try:
                 return "grok"
             if len(self.gemini_keys_list) > 0:
                 return "gemini"
-            return "grok"  # default to grok when provider is auto
+            return "grok"
 
         @property
         def origins_list(self) -> list[str]:
@@ -69,7 +73,7 @@ except ImportError:
             self.grok_api_key = os.getenv("GROK_API_KEY") or os.getenv("XAI_API_KEY")
             self.grok_api_keys = os.getenv("GROK_API_KEYS")
             self.xai_api_key = os.getenv("XAI_API_KEY")
-            self.grok_model = os.getenv("GROK_MODEL", "grok-2-latest")
+            self.grok_model = os.getenv("GROK_MODEL", "grok-2")
             self.grok_base_url = os.getenv("GROK_BASE_URL", "https://api.x.ai/v1")
 
             self.gemini_api_key = os.getenv("GEMINI_API_KEY")
@@ -101,6 +105,10 @@ except ImportError:
             if self.gemini_api_key and self.gemini_api_key.strip() not in keys:
                 keys.append(self.gemini_api_key.strip())
             return keys
+
+        @property
+        def api_keys_list(self) -> list[str]:
+            return self.grok_keys_list if self.active_provider == "grok" else self.gemini_keys_list
 
         @property
         def active_provider(self) -> str:
