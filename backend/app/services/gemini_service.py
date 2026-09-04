@@ -1,5 +1,5 @@
 ﻿"""
-Gemini LLM Service with Autonomous Emotion Detection & Multilingual Conversational Mirroring.
+Gemini LLM Service with Natural Human Conversation, Multilingual Mirroring & Zero-Leak Emotion Telemetry.
 """
 
 import json
@@ -57,7 +57,7 @@ async def get_companion_reply(
                 contents=contents,
                 config=types.GenerateContentConfig(
                     system_instruction=GROQ_SYSTEM_PROMPT,
-                    temperature=0.7,
+                    temperature=0.75,
                 ),
             )
 
@@ -95,7 +95,8 @@ async def get_companion_reply_stream(
 
     client = genai.Client(api_key=active_key)
     accumulated = ""
-    streamed_length = 0
+    emitted_length = 0
+    HOLD_BACK_CHARS = 16
 
     try:
         response_stream = client.models.generate_content_stream(
@@ -103,25 +104,32 @@ async def get_companion_reply_stream(
             contents=contents,
             config=types.GenerateContentConfig(
                 system_instruction=GROQ_SYSTEM_PROMPT,
-                temperature=0.7,
+                temperature=0.75,
             ),
         )
 
         for chunk in response_stream:
             chunk_text = chunk.text or ""
+            if not chunk_text:
+                continue
             accumulated += chunk_text
 
-            if "<!--EMOTION:" in accumulated:
-                visible_part = accumulated[:accumulated.index("<!--EMOTION:")].rstrip()
-                if len(visible_part) > streamed_length:
-                    diff = visible_part[streamed_length:]
-                    streamed_length = len(visible_part)
-                    yield f"data: {json.dumps({'type': 'chunk', 'content': diff})}\n\n"
+            tag_idx = accumulated.find("<!--")
+            if tag_idx != -1:
+                safe_boundary = tag_idx
             else:
-                streamed_length += len(chunk_text)
-                yield f"data: {json.dumps({'type': 'chunk', 'content': chunk_text})}\n\n"
+                safe_boundary = max(0, len(accumulated) - HOLD_BACK_CHARS)
+
+            if safe_boundary > emitted_length:
+                to_emit = accumulated[emitted_length:safe_boundary]
+                emitted_length = safe_boundary
+                yield f"data: {json.dumps({'type': 'chunk', 'content': to_emit})}\n\n"
 
         clean_text, emotion = _parse_reply_and_emotion(accumulated)
+        if len(clean_text) > emitted_length:
+            remaining_safe = clean_text[emitted_length:]
+            yield f"data: {json.dumps({'type': 'chunk', 'content': remaining_safe})}\n\n"
+
         key_manager.report_success(active_key)
         yield f"data: {json.dumps({'type': 'emotion', 'emotion': emotion.model_dump()})}\n\n"
         yield f"data: {json.dumps({'type': 'done'})}\n\n"

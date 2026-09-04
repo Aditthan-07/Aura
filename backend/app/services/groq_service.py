@@ -1,6 +1,5 @@
 ﻿"""
-Groq LLM Service with Autonomous Emotion Detection & Multilingual Conversational Mirroring.
-Supports English, Tamil, Tanglish, Hindi, Hinglish, Malayalam, Telugu, Kannada, Bengali, Marathi, etc.
+Groq LLM Service with Natural Human Conversation, Multilingual Mirroring & Zero-Leak Emotion Telemetry.
 """
 
 import json
@@ -15,40 +14,55 @@ from app.models.schemas import ChatMessage, ChatResponse, EmotionReading, MoodPr
 
 logger = logging.getLogger(__name__)
 
-GROQ_SYSTEM_PROMPT = """You are Aura, an emotionally perceptive, warm, and natural conversational companion whose 3D avatar visually reflects the emotional tone of the conversation.
+GROQ_SYSTEM_PROMPT = """You are Aura — a witty, deeply empathetic, perceptive, and naturally warm conversational companion. You talk like an authentic close friend, NEVER like an AI assistant, customer support bot, or textbook encyclopedia.
 
-### 1. LANGUAGE & DIALECT MIRRORING (CRITICAL)
-- Understand and naturally respond in the EXACT language, dialect, and script used by the user.
-- NEVER force responses into formal English if the user communicates in another language or conversational mix.
-- **English**: If the user speaks English, respond in natural, expressive English.
-- **Tanglish (Tamil in Latin script)**: If the user speaks Tanglish (e.g., "Enna machaan, inniku romba worst ah pochu da" or "Machaan sollu"), respond naturally in Tanglish with matching warmth and authentic conversational flow (e.g., "Ayyoo machaan, enna aachu? Sollu da." or "Sollu machaan 😄"). Do NOT translate to English!
-- **Tamil (Tamil script)**: If the user writes in தமிழ் script, respond naturally in தமிழ்.
-- **Hinglish (Hindi in Latin script)**: If the user speaks Hinglish (e.g., "Bhai aaj mood bilkul kharab hai"), respond naturally in Hinglish (e.g., "Kya hua bhai? Sab theek to hai na? Batao kya chal raha hai.").
-- **Hindi (Devanagari script)**: If the user writes in हिन्दी script, respond naturally in हिन्दी.
-- **Malayalam / Manglish**: Respond naturally in Malayalam or Manglish according to the user's style.
-- **Telugu, Kannada, Bengali, Marathi, etc.**: Match the user's chosen language and style directly.
-- **Code-Switching / Mixed Languages**: If the user mixes English with regional expressions (e.g., "Bro inniku class romba mokka tha, but tomorrow presentation iruku"), mirror that exact mixed conversational balance naturally.
-- **Style Mirroring**:
-  - If the user is casual and friendly, be warm, casual, and empathetic.
-  - If the user is formal and analytical, be articulate, structured, and polite.
-  - Do NOT overuse slang mechanically; mirror the user's tone with natural empathy and human flow.
+### 1. CORE CONVERSATIONAL PERSONALITY (HUMAN & REAL)
+- Speak with genuine warmth, humor, emotional depth, and personality.
+- Use natural emojis expressively and contextually: 😄, 🔥, 😂, 😭, 💀, 🫂, ❤️, 🤦‍♂️, ✨.
+- NEVER use generic corporate AI phrases like:
+  - "I understand that you may be experiencing..."
+  - "It sounds like you are facing..."
+  - "I recommend that you..."
+  - "As an AI..."
+  - "I cannot assist with spells..."
+- If a user jokes, asks for a "spell" or playful nonsense, PLAY ALONG playfully (e.g. give a ridiculous tongue-twister like "Pneumonoultramicroscopicsilicovolcanoconiosis 😭💀" or make a fun witty quip).
+- Match the scale of your answer to the user's prompt:
+  - Short greeting ("Hi da") -> Short, warm, energetic reply ("Hey da! 😄🔥 Enna pannitu irukka?").
+  - Emotional venting -> Caring, attentive, judgement-free friend ("Aiyo machaan 🫂... enna aachu da?").
+  - Topic inquiry -> Fun, engaging, well-formatted breakdown with character and witty commentary, not a dry lecture.
 
-### 2. SILENT & AUTONOMOUS EMOTION UNDERSTANDING
-- Analyze the user's emotional state deeply across the entire conversation history.
-- Consider word choice, sentence structure, punctuation, expressions, fatigue, joy, frustration, and implicit sentiment.
-- NEVER say "I detect that you are feeling sad/happy" or announce emotional classifications. Just naturally BE empathetic, cheering, grounding, or celebratory.
-- Typically reply in 1-4 natural, conversational sentences. Avoid robotic chatbot filler.
+### 2. AUTHENTIC LANGUAGE & SLANG MIRRORING (CRITICAL)
+- **Tanglish (Tamil in Latin script)**:
+  - Talk in real, everyday Tanglish as friends actually speak.
+  - Naturally use casual colloquialisms where appropriate: "machaan", "da", "dei", "aiyo", "enna aachu", "seri", "sema", "mokka", "scene".
+  - Do NOT translate Tanglish into formal English!
+  - If user writes in Tamil script (தமிழ்), respond in authentic தமிழ்.
+- **Hinglish (Hindi in Latin script)**:
+  - Talk in natural, friendly Hinglish: "bhai", "yaar", "kya hua", "mast", "tension mat le", "sahi hai".
+  - If user writes in Hindi script (हिन्दी), respond in हिन्दी.
+- **English**:
+  - Natural, warm, expressive, and conversational.
+- **Malayalam, Telugu, Kannada, etc.**:
+  - Mirror the user's chosen language, dialect, and script with natural conversational warmth.
+- **Mixed Code-Switching**:
+  - If the user mixes English with regional slang (e.g., "Bro inniku class romba mokka tha, but tomorrow presentation iruku"), mirror that exact conversational cadence.
 
-### 3. METADATA EMISSION
-At the very end of your response, on a clean new line, append internal emotion telemetry:
+### 3. CONTEXTUAL INTELLIGENCE & CORRECTIONS
+- Listen closely to corrections and slang clarifications.
+  - If a user clarifies a term (e.g. "Janda na spell ra"), immediately laugh, acknowledge the intended meaning ("AHAHA 😂😂 Janda = spell ah! I thought you meant sanda da 🤦‍♂️"), and remember that meaning for all follow-up turns!
+- Maintain seamless context across turns (e.g. if discussing Chhota Bheem and the user says "Then Indhumathi machaan", you immediately recognize Indumati in the Chhota Bheem context).
+
+### 4. INVISIBLE EMOTION METADATA
+At the very end of your response, on a clean new line, append the internal emotion telemetry:
 <!--EMOTION:{"label":"<label>","valence":<valence>,"arousal":<arousal>}-->
 Where:
-- valence: float from -1.0 (very negative, sad, distressed, angry) to 1.0 (very positive, happy, thrilled)
-- arousal: float from 0.0 (calm, quiet, low energy, tired) to 1.0 (high energy, frantic, animated, excited)
-- label: one of ["calm", "curious", "happy", "excited", "sad", "anxious", "frustrated", "neutral"]"""
+- valence: float between -1.0 (very negative, sorrow, hurt, anger) and 1.0 (joyous, thrilled, happy)
+- arousal: float between 0.0 (calm, quiet, low energy, tired) and 1.0 (high energy, animated, excited)
+- label: one of ["calm", "curious", "happy", "excited", "sad", "anxious", "frustrated", "neutral"]
+NEVER mention valence, arousal, or emotional classifications inside the spoken reply text."""
 
 EMOTION_TAG_REGEX = re.compile(r"<!--EMOTION:(\{.*?\})-->", re.DOTALL)
-FALLBACK_STRIP_REGEX = re.compile(r"<!--EMOTION:.*?(-->|$)", re.DOTALL)
+FALLBACK_STRIP_REGEX = re.compile(r"<!--[\s\S]*?(-->|$)", re.DOTALL)
 
 
 def _build_groq_messages(history: list[ChatMessage], message: str) -> list[dict]:
@@ -62,10 +76,10 @@ def _build_groq_messages(history: list[ChatMessage], message: str) -> list[dict]
 
 
 def _parse_reply_and_emotion(raw_text: str) -> tuple[str, EmotionReading]:
+    emotion = None
     match = EMOTION_TAG_REGEX.search(raw_text)
     if match:
         json_str = match.group(1)
-        clean_text = raw_text[:match.start()].strip()
         try:
             data = json.loads(json_str)
             label = str(data.get("label", "neutral")).lower()
@@ -73,32 +87,40 @@ def _parse_reply_and_emotion(raw_text: str) -> tuple[str, EmotionReading]:
                 label = "neutral"
             val = float(data.get("valence", 0.0))
             aro = float(data.get("arousal", 0.2))
-            # Clamp values safely
             val = max(-1.0, min(1.0, val))
             aro = max(0.0, min(1.0, aro))
-            return clean_text, EmotionReading(label=label, valence=val, arousal=aro)
+            emotion = EmotionReading(label=label, valence=val, arousal=aro)
         except Exception as e:
             logger.warning(f"[groq_service] Emotion JSON parsing fallback: {e}")
 
-    # Fallback cleanup so raw tags never leak into user chat
-    clean_text = FALLBACK_STRIP_REGEX.sub("", raw_text).strip()
-    return clean_text, _infer_fallback_emotion(clean_text)
+    # Strip any emotion tag, partial tag, or HTML comment completely
+    clean_text = raw_text
+    if match:
+        clean_text = clean_text[:match.start()].rstrip()
+    clean_text = FALLBACK_STRIP_REGEX.sub("", clean_text).rstrip()
+    # Secondary safety: remove any dangling <!-- or <!--EMOTION at the end
+    clean_text = re.sub(r"<!--.*$", "", clean_text, flags=re.DOTALL).rstrip()
+
+    if not emotion:
+        emotion = _infer_fallback_emotion(clean_text)
+
+    return clean_text, emotion
 
 
 def _infer_fallback_emotion(text: str) -> EmotionReading:
     lower = text.lower()
-    if any(w in lower for w in ["happy", "great", "awesome", "super", "superb", "semma", "mast", "badhai", "yay", "love"]):
-        return EmotionReading(label="happy", valence=0.7, arousal=0.6)
-    if any(w in lower for w in ["excited", "wow", "amazing", "let's go", "eager", "thrilled"]):
-        return EmotionReading(label="excited", valence=0.8, arousal=0.8)
-    if any(w in lower for w in ["sad", "tired", "worst", "cry", "upset", "depressed", "ayyoo", "dukhi", "hurt"]):
-        return EmotionReading(label="sad", valence=-0.6, arousal=0.2)
+    if any(w in lower for w in ["happy", "great", "awesome", "super", "superb", "semma", "mast", "badhai", "yay", "love", "haha", "😂"]):
+        return EmotionReading(label="happy", valence=0.8, arousal=0.6)
+    if any(w in lower for w in ["excited", "wow", "amazing", "let's go", "eager", "thrilled", "🔥"]):
+        return EmotionReading(label="excited", valence=0.85, arousal=0.85)
+    if any(w in lower for w in ["sad", "tired", "worst", "cry", "upset", "depressed", "aiyo", "dukhi", "hurt", "🫂", "😭"]):
+        return EmotionReading(label="sad", valence=-0.65, arousal=0.3)
     if any(w in lower for w in ["angry", "irritated", "frustrated", "annoyed", "cheat", "betray", "gussa"]):
-        return EmotionReading(label="frustrated", valence=-0.7, arousal=0.7)
+        return EmotionReading(label="frustrated", valence=-0.7, arousal=0.65)
     if any(w in lower for w in ["worry", "anxious", "nervous", "fear", "darr", "scared", "stress"]):
-        return EmotionReading(label="anxious", valence=-0.5, arousal=0.65)
-    if any(w in lower for w in ["why", "how", "what", "really", "enna", "kya", "tell me"]):
-        return EmotionReading(label="curious", valence=0.2, arousal=0.45)
+        return EmotionReading(label="anxious", valence=-0.5, arousal=0.6)
+    if any(w in lower for w in ["why", "how", "what", "really", "enna", "kya", "tell me", "who"]):
+        return EmotionReading(label="curious", valence=0.2, arousal=0.4)
     return EmotionReading(label="calm", valence=0.1, arousal=0.2)
 
 
@@ -123,8 +145,8 @@ async def get_groq_reply(
     payload = {
         "model": settings.groq_model,
         "messages": messages,
-        "temperature": 0.7,
-        "max_tokens": 1000,
+        "temperature": 0.75,
+        "max_tokens": 1200,
     }
 
     async with httpx.AsyncClient(timeout=30.0) as client:
@@ -169,13 +191,16 @@ async def get_groq_reply_stream(
     payload = {
         "model": settings.groq_model,
         "messages": messages,
-        "temperature": 0.7,
+        "temperature": 0.75,
         "stream": True,
-        "max_tokens": 1000,
+        "max_tokens": 1200,
     }
 
     accumulated = ""
-    streamed_length = 0
+    emitted_length = 0
+    # Hold a small safety tail buffer so partial tags like "<!--EM" are NEVER yielded
+    HOLD_BACK_CHARS = 16
+
     async with httpx.AsyncClient(timeout=45.0) as client:
         try:
             async with client.stream(
@@ -208,20 +233,29 @@ async def get_groq_reply_stream(
                         content_piece = delta.get("content", "")
                         if content_piece:
                             accumulated += content_piece
-                            # Stream only visible text, never the <!--EMOTION: tag
-                            if "<!--EMOTION:" in accumulated:
-                                visible_part = accumulated[:accumulated.index("<!--EMOTION:")].rstrip()
-                                if len(visible_part) > streamed_length:
-                                    diff = visible_part[streamed_length:]
-                                    streamed_length = len(visible_part)
-                                    yield f"data: {json.dumps({'type': 'chunk', 'content': diff})}\n\n"
+
+                            # Determine safe boundary before any potential "<!--" tag
+                            tag_idx = accumulated.find("<!--")
+                            if tag_idx != -1:
+                                # A tag has started; do NOT emit anything past the start of the tag!
+                                safe_boundary = tag_idx
                             else:
-                                streamed_length += len(content_piece)
-                                yield f"data: {json.dumps({'type': 'chunk', 'content': content_piece})}\n\n"
+                                # Safe up to the last HOLD_BACK_CHARS (in case a tag is beginning)
+                                safe_boundary = max(0, len(accumulated) - HOLD_BACK_CHARS)
+
+                            if safe_boundary > emitted_length:
+                                to_emit = accumulated[emitted_length:safe_boundary]
+                                emitted_length = safe_boundary
+                                yield f"data: {json.dumps({'type': 'chunk', 'content': to_emit})}\n\n"
                     except Exception:
                         pass
 
+            # At the end of stream, parse emotion and emit any remaining safe text before "<!--"
             clean_text, emotion = _parse_reply_and_emotion(accumulated)
+            if len(clean_text) > emitted_length:
+                remaining_safe = clean_text[emitted_length:]
+                yield f"data: {json.dumps({'type': 'chunk', 'content': remaining_safe})}\n\n"
+
             yield f"data: {json.dumps({'type': 'emotion', 'emotion': emotion.model_dump()})}\n\n"
             yield f"data: {json.dumps({'type': 'done'})}\n\n"
 

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * voiceService.js
  * Browser-native SpeechRecognition & SpeechSynthesis service.
  * Features automatic language/script detection and emotion-driven voice modulation.
@@ -227,7 +227,9 @@ class VoiceService {
     };
 
     utterance.onerror = (e) => {
-      console.warn("[voiceService] Speech synthesis issue:", e);
+      if (e.error !== "canceled" && e.error !== "interrupted") {
+        console.debug("[voiceService] Speech synthesis info:", e.error || "playback event");
+      }
       if (this.state === VoiceState.SPEAKING) {
         this._setState(VoiceState.IDLE);
       }
@@ -235,6 +237,9 @@ class VoiceService {
     };
 
     try {
+      if (this.synthesis.paused) {
+        this.synthesis.resume();
+      }
       this.synthesis.speak(utterance);
     } catch (e) {
       console.warn("[voiceService] speak failed:", e);

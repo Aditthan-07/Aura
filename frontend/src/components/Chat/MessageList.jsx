@@ -1,6 +1,15 @@
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+function cleanMessageContent(content) {
+  if (!content) return "";
+  return content
+    .replace(/<!--EMOTION[\s\S]*?(-->|$)/gi, "")
+    .replace(/<!--[\s\S]*?(-->|$)/gi, "")
+    .replace(/<!--.*$/gis, "")
+    .trim();
+}
+
 export default function MessageList({ messages, isThinking, isStreaming }) {
   const bottomRef = useRef(null);
 
@@ -20,6 +29,11 @@ export default function MessageList({ messages, isThinking, isStreaming }) {
         {messages.map((msg, i) => {
           const isLatestAssistant =
             i === messages.length - 1 && msg.role === "assistant" && isStreaming;
+          const displayContent = cleanMessageContent(msg.content);
+
+          if (!displayContent && !isLatestAssistant) {
+            return null;
+          }
 
           return (
             <motion.div
@@ -29,7 +43,7 @@ export default function MessageList({ messages, isThinking, isStreaming }) {
               transition={{ duration: 0.25, ease: "easeOut" }}
               className={`message message--${msg.role}`}
             >
-              {msg.content}
+              {displayContent}
               {isLatestAssistant && <span className="streaming-cursor">▍</span>}
             </motion.div>
           );

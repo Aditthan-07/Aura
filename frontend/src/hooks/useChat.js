@@ -1,4 +1,4 @@
-﻿/**
+/**
  * useChat.js
  * Enhanced chat state management with clean refresh handling, multi-session persistence,
  * in-flight request protection, voice-reactive integration, and non-destructive retry handling.
@@ -192,12 +192,17 @@ export function useChat() {
             setIsStreaming(true);
             accumulatedAssistantText += chunk;
 
+            const safeVisibleText = accumulatedAssistantText
+              .replace(/<!--EMOTION[\s\S]*?(-->|$)/gi, "")
+              .replace(/<!--[\s\S]*?(-->|$)/gi, "")
+              .replace(/<!--.*$/gis, "");
+
             setMessages((prev) => {
               const last = prev[prev.length - 1];
               if (last && last.id === assistantMessageId) {
                 return [
                   ...prev.slice(0, -1),
-                  { ...last, content: accumulatedAssistantText },
+                  { ...last, content: safeVisibleText },
                 ];
               }
               return [
@@ -205,7 +210,7 @@ export function useChat() {
                 {
                   id: assistantMessageId,
                   role: "assistant",
-                  content: accumulatedAssistantText,
+                  content: safeVisibleText,
                   timestamp: Date.now(),
                 },
               ];
@@ -221,10 +226,28 @@ export function useChat() {
             setIsStreaming(false);
             inFlightRef.current = false;
             abortControllerRef.current = null;
+
+            const finalSafeText = accumulatedAssistantText
+              .replace(/<!--EMOTION[\s\S]*?(-->|$)/gi, "")
+              .replace(/<!--[\s\S]*?(-->|$)/gi, "")
+              .replace(/<!--.*$/gis, "")
+              .trim();
+
+            setMessages((prev) => {
+              const last = prev[prev.length - 1];
+              if (last && last.id === assistantMessageId) {
+                return [
+                  ...prev.slice(0, -1),
+                  { ...last, content: finalSafeText },
+                ];
+              }
+              return prev;
+            });
+
             setSessions(chatStorage.getSessions());
 
-            if (autoSpeak && accumulatedAssistantText) {
-              voiceService.speak(accumulatedAssistantText, emotion);
+            if (autoSpeak && finalSafeText) {
+              voiceService.speak(finalSafeText, emotion);
             }
           },
           onError: (err) => {
