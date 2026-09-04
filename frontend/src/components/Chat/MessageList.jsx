@@ -3,11 +3,16 @@ import { motion, AnimatePresence } from "framer-motion";
 
 function cleanMessageContent(content) {
   if (!content) return "";
-  return content
+  let clean = content
     .replace(/<!--EMOTION[\s\S]*?(-->|$)/gi, "")
     .replace(/<!--[\s\S]*?(-->|$)/gi, "")
-    .replace(/<!--.*$/gis, "")
-    .trim();
+    .replace(/<!--.*$/gis, "");
+
+  // Clean raw markdown asterisks (e.g. **word** or lone *)
+  clean = clean.replace(/\*\*([^*]+)\*\*/g, "$1");
+  clean = clean.replace(/\*([^*]+)\*/g, "$1");
+  clean = clean.replace(/\*\*/g, "").replace(/\*/g, "");
+  return clean.trim();
 }
 
 export default function MessageList({ messages, isThinking, isStreaming }) {

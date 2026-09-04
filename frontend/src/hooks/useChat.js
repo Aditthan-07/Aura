@@ -195,7 +195,11 @@ export function useChat() {
             const safeVisibleText = accumulatedAssistantText
               .replace(/<!--EMOTION[\s\S]*?(-->|$)/gi, "")
               .replace(/<!--[\s\S]*?(-->|$)/gi, "")
-              .replace(/<!--.*$/gis, "");
+              .replace(/<!--.*$/gis, "")
+              .replace(/\*\*([^*]+)\*\*/g, "$1")
+              .replace(/\*([^*]+)\*/g, "$1")
+              .replace(/\*\*/g, "")
+              .replace(/\*/g, "");
 
             setMessages((prev) => {
               const last = prev[prev.length - 1];
@@ -231,6 +235,10 @@ export function useChat() {
               .replace(/<!--EMOTION[\s\S]*?(-->|$)/gi, "")
               .replace(/<!--[\s\S]*?(-->|$)/gi, "")
               .replace(/<!--.*$/gis, "")
+              .replace(/\*\*([^*]+)\*\*/g, "$1")
+              .replace(/\*([^*]+)\*/g, "$1")
+              .replace(/\*\*/g, "")
+              .replace(/\*/g, "")
               .trim();
 
             setMessages((prev) => {
