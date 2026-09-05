@@ -1,4 +1,4 @@
-﻿import MessageList from "./MessageList";
+import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
 
 export default function ChatPanel({
@@ -18,7 +18,9 @@ export default function ChatPanel({
         messages={messages}
         isThinking={isThinking}
         isStreaming={isStreaming}
+        onSelectDirective={onSend}
       />
+
 
       {error && (
         <div className="chat-panel__error-banner" role="alert">

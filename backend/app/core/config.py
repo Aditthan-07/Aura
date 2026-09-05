@@ -31,6 +31,8 @@ try:
         gemini_model: str = "gemini-2.5-flash"
 
         # General Settings
+        app_name: str = "ARCIS — Autonomous Reactor Core Intelligent System"
+        app_version: str = "2.0.0"
         llm_provider: str = "auto"  # "auto", "groq", "grok", or "gemini"
         allowed_origins: str = "http://localhost:5173"
         max_history_messages: int = 20

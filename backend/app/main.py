@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.routes import chat
 
-app = FastAPI(title="Aura API", version="1.0.0")
+app = FastAPI(title="ARCIS API — Autonomous Reactor Core Intelligent System", version="2.0.0")
 
 settings = get_settings()
 app.add_middleware(

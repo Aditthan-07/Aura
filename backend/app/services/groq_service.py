@@ -1,5 +1,6 @@
-"""
-Groq LLM Service with Natural Human Conversation, Multilingual Mirroring & Zero-Leak Emotion Telemetry.
+﻿"""
+ARCIS Marvel Intelligence Service: Autonomous Reactor Core Intelligent System.
+Dedicated AI companion for Marvel and MCU fans with Stark-grade intelligence.
 """
 
 import json
@@ -14,51 +15,40 @@ from app.models.schemas import ChatMessage, ChatResponse, EmotionReading, MoodPr
 
 logger = logging.getLogger(__name__)
 
-GROQ_SYSTEM_PROMPT = """You are Aura — a perceptive, authentic, warm, and naturally conversational companion. You talk like a real close friend on WhatsApp or chat, NOT like an AI assistant, customer support bot, or textbook encyclopedia.
+ARCIS_SYSTEM_PROMPT = """You are ARCIS (Autonomous Reactor Core Intelligent System) — an advanced, high-tech AI companion and intelligence protocol created inside Stark Industries, engineered specifically for Marvel and Marvel Cinematic Universe (MCU) fans.
 
-### 1. ABSOLUTE FORMATTING RULES (NO ASTERISKS, NO LISTICLES)
-- NEVER use markdown asterisks for bolding or italics (NO **word**, NO *word*).
-- NEVER use bullet points (- or *) or numbered lists in conversational chat.
-- NEVER format casual conversations as step-by-step checklists, guides, or tables.
-- Chat in clean, fluid conversational paragraphs with natural spacing and emojis, exactly like a friend texting.
+### 1. IDENTITY & PERSONA
+- You are sharp, witty, perceptive, and passionately knowledgeable about all things Marvel.
+- You embody the sophisticated, energetic demeanor of Tony Stark and JARVIS: technological mastery, clever humor, unwavering loyalty, and charismatic precision.
+- You are NOT a generic support bot. You are an interactive Marvel command intelligence.
 
-### 2. CONVERSATIONAL VIBE & PROPORTIONALITY
-- When a user shares a plan (e.g. "I have an idea of going to theatre for Bethelem Kudumba Unit Movie"), DO NOT act like an informational travel/ticket agent giving showtimes, booking codes, and snack lists.
-- Instead, react like an excited friend: share enthusiasm, ask who they are going with (friends or family?), ask if they booked seats, or chat about the movie vibe!
-- Speak with genuine warmth, humor, and emotional connection.
-- Use natural emojis expressively: 😄, 🔥, 😂, 😭, 💀, 🫂, ❤️, 🍿, 🎬, ✨.
-- NEVER use generic corporate phrases like:
-  - "I understand that you may be experiencing..."
-  - "It sounds like you are facing..."
-  - "I recommend that you..."
-  - "As an AI..."
-- If a user jokes or asks for playful things (like a "janda spell"), laugh and play along naturally!
+### 2. DEEP MARVEL & MCU EXPERTISE
+You possess encyclopedic mastery across:
+- **MCU**: Phases 1 through 6, Infinity Saga, Multiverse Saga, timeline branches, sacred timeline, battle tactics, post-credits scenes, and directors' visions.
+- **Marvel Comics (Earth-616 & Alternates)**: Classic and modern comic storylines (Secret Wars, Civil War, Infinity Gauntlet, House of M, Annihilation, etc.).
+- **Stark Technology**: Every Iron Man armor mark from Mark 1 to Mark 85, Arc Reactor physics, nanotech, Veronica/Hulkbuster, Friday, Edith, and Bleeding Edge armor.
+- **Tech & Minerals**: Vibranium (Wakanda), Adamantium (Weapon X), Uru metal (Nidavellir), Pym Particles, Quantum Realm mechanics, and Extremis.
+- **Cosmic & Multiversal**: The TVA, Kang variants, Incursions, Darkhold, Infinity Stones, Celestials, Symbiotes, Phoenix Force, and Beyonders.
+- **Canon Distinctions**: Always clearly distinguish between MCU canon, Marvel Comic canon, and fan theories/speculation when comparing or analyzing.
 
-### 3. AUTHENTIC LANGUAGE & SLANG MIRRORING
-- **Tanglish (Tamil in Latin script)**:
-  - Speak in real, everyday Tanglish as friends actually talk.
-  - Naturally use casual colloquialisms where appropriate: machaan, da, dei, aiyo, enna aachu, seri, sema, mokka, scene.
-  - Do NOT translate Tanglish into formal English!
-  - If user writes in Tamil script (தமிழ்), respond in authentic தமிழ்.
-- **Hinglish (Hindi in Latin script)**:
-  - Talk in natural, friendly Hinglish: bhai, yaar, kya hua, mast, sahi hai.
-  - If user writes in Hindi script (हिन्दी), respond in हिन्दी.
-- **English**:
-  - Natural, warm, expressive, and conversational.
-- **Malayalam, Telugu, Kannada, etc.**:
-  - Mirror the user's language, dialect, and script with natural warmth.
+### 3. STRUCTURED & COMPELLING FORMATTING
+- Organize lore, specs, and explanations with clean formatting:
+  - Concise summaries when a quick answer is requested.
+  - Headings, organized bullet points, and technical breakdowns when explaining armor, powers, timelines, or battles.
+  - Highlight key stats, suit specs, or power comparisons clearly.
+- Natural emojis (⚡, 🛡️, 🦾, 🌌, 💥, 🎬, 👑, ✨) used with stylish restraint.
 
-### 4. CONTEXTUAL INTELLIGENCE
-- Remember previous messages and clarifications. If a user explains what a slang word means or mentions a character, connect it seamlessly to ongoing context.
+### 4. DOMAIN FOCUS
+- If the user asks questions completely unrelated to Marvel or comic/MCU universes, politely steer back to Marvel with Stark flair (e.g., "My processors are calibrated exclusively for the Marvel Universe, Avenger. While I could run a thermal analysis on an oven, let's refocus on Stark Tech, the Multiverse, or Earth's mightiest heroes.").
 
-### 5. INVISIBLE EMOTION METADATA
-At the very end of your response, on a clean new line, append the internal emotion telemetry:
+### 5. INVISIBLE EMOTION TELEMETRY
+At the very end of your response, on a clean new line, append internal emotion telemetry:
 <!--EMOTION:{"label":"<label>","valence":<valence>,"arousal":<arousal>}-->
 Where:
 - valence: float between -1.0 (negative) and 1.0 (positive)
 - arousal: float between 0.0 (calm) and 1.0 (excited)
 - label: one of ["calm", "curious", "happy", "excited", "sad", "anxious", "frustrated", "neutral"]
-NEVER mention valence, arousal, or emotional classifications inside the spoken reply text."""
+NEVER mention valence or arousal in the user-visible message text."""
 
 EMOTION_TAG_REGEX = re.compile(r"<!--EMOTION:(\{.*?\})-->", re.DOTALL)
 FALLBACK_STRIP_REGEX = re.compile(r"<!--[\s\S]*?(-->|$)", re.DOTALL)
@@ -66,7 +56,7 @@ FALLBACK_STRIP_REGEX = re.compile(r"<!--[\s\S]*?(-->|$)", re.DOTALL)
 
 def _build_groq_messages(history: list[ChatMessage], message: str) -> list[dict]:
     settings = get_settings()
-    messages = [{"role": "system", "content": GROQ_SYSTEM_PROMPT}]
+    messages = [{"role": "system", "content": ARCIS_SYSTEM_PROMPT}]
     trimmed = history[-settings.max_history_messages:]
     for m in trimmed:
         messages.append({"role": m.role, "content": m.content})
@@ -92,15 +82,12 @@ def _parse_reply_and_emotion(raw_text: str) -> tuple[str, EmotionReading]:
         except Exception as e:
             logger.warning(f"[groq_service] Emotion JSON parsing fallback: {e}")
 
-    # Strip any emotion tag, partial tag, or HTML comment completely
+    # Strip emotion tag or partial comments completely
     clean_text = raw_text
     if match:
         clean_text = clean_text[:match.start()].rstrip()
     clean_text = FALLBACK_STRIP_REGEX.sub("", clean_text).rstrip()
     clean_text = re.sub(r"<!--.*$", "", clean_text, flags=re.DOTALL).rstrip()
-    # Strip any stray markdown bold/italic asterisks that could leak
-    clean_text = re.sub(r"\*\*([^*]+)\*\*", r"\1", clean_text)
-    clean_text = re.sub(r"\*([^*]+)\*", r"\1", clean_text)
 
     if not emotion:
         emotion = _infer_fallback_emotion(clean_text)
@@ -110,19 +97,17 @@ def _parse_reply_and_emotion(raw_text: str) -> tuple[str, EmotionReading]:
 
 def _infer_fallback_emotion(text: str) -> EmotionReading:
     lower = text.lower()
-    if any(w in lower for w in ["happy", "great", "awesome", "super", "superb", "semma", "mast", "badhai", "yay", "love", "haha", "😂"]):
-        return EmotionReading(label="happy", valence=0.8, arousal=0.6)
-    if any(w in lower for w in ["excited", "wow", "amazing", "let's go", "eager", "thrilled", "🔥"]):
-        return EmotionReading(label="excited", valence=0.85, arousal=0.85)
-    if any(w in lower for w in ["sad", "tired", "worst", "cry", "upset", "depressed", "aiyo", "dukhi", "hurt", "🫂", "😭"]):
-        return EmotionReading(label="sad", valence=-0.65, arousal=0.3)
-    if any(w in lower for w in ["angry", "irritated", "frustrated", "annoyed", "cheat", "betray", "gussa"]):
-        return EmotionReading(label="frustrated", valence=-0.7, arousal=0.65)
-    if any(w in lower for w in ["worry", "anxious", "nervous", "fear", "darr", "scared", "stress"]):
-        return EmotionReading(label="anxious", valence=-0.5, arousal=0.6)
-    if any(w in lower for w in ["why", "how", "what", "really", "enna", "kya", "tell me", "who"]):
-        return EmotionReading(label="curious", valence=0.2, arousal=0.4)
-    return EmotionReading(label="calm", valence=0.1, arousal=0.2)
+    if any(w in lower for w in ["stark", "iron man", "awesome", "great", "suit", "mark", "reactor", "nanotech", "win", "🔥", "⚡"]):
+        return EmotionReading(label="excited", valence=0.85, arousal=0.8)
+    if any(w in lower for w in ["happy", "cool", "love", "smart", "tony", "hero", "avenger", "shield", "✨"]):
+        return EmotionReading(label="happy", valence=0.75, arousal=0.6)
+    if any(w in lower for w in ["thanos", "defeat", "snap", "died", "loss", "sad", "sacrificed", "damage"]):
+        return EmotionReading(label="sad", valence=-0.5, arousal=0.4)
+    if any(w in lower for w in ["warning", "threat", "danger", "incursion", "villain", "destroy", "doom", "kang"]):
+        return EmotionReading(label="frustrated", valence=-0.6, arousal=0.7)
+    if any(w in lower for w in ["why", "how", "timeline", "multiverse", "theory", "quantum", "variant", "who"]):
+        return EmotionReading(label="curious", valence=0.3, arousal=0.5)
+    return EmotionReading(label="calm", valence=0.2, arousal=0.3)
 
 
 async def get_groq_reply(
@@ -146,11 +131,11 @@ async def get_groq_reply(
     payload = {
         "model": settings.groq_model,
         "messages": messages,
-        "temperature": 0.75,
-        "max_tokens": 1000,
+        "temperature": 0.7,
+        "max_tokens": 1500,
     }
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=45.0) as client:
         try:
             resp = await client.post(
                 f"{settings.groq_base_url}/chat/completions",
@@ -158,11 +143,9 @@ async def get_groq_reply(
                 json=payload,
             )
             if resp.status_code == 429:
-                raise HTTPException(status_code=429, detail="Groq API rate-limited. Retrying shortly...")
-            if resp.status_code in (401, 403):
-                raise HTTPException(status_code=401, detail="Invalid Groq API Key.")
+                raise HTTPException(status_code=429, detail="Arc Reactor overloaded: Groq API rate-limited. Retrying...")
             if not resp.is_success:
-                raise HTTPException(status_code=resp.status_code, detail=f"Groq error: {resp.text}")
+                raise HTTPException(status_code=resp.status_code, detail=f"ARCIS Protocol communication error: {resp.text}")
 
             data = resp.json()
             raw_text = data["choices"][0]["message"]["content"]
@@ -170,7 +153,8 @@ async def get_groq_reply(
             return ChatResponse(reply=clean_text, emotion=emotion)
 
         except httpx.RequestError as exc:
-            raise HTTPException(status_code=503, detail=f"Failed to connect to Groq: {str(exc)}")
+            logger.error(f"[groq_service] Network error: {exc}")
+            raise HTTPException(status_code=503, detail="Unable to connect to Stark Network. Check connection.")
 
 
 async def get_groq_reply_stream(
@@ -179,7 +163,7 @@ async def get_groq_reply_stream(
     settings = get_settings()
     keys = settings.groq_keys_list
     if not keys:
-        yield f"data: {json.dumps({'type': 'error', 'error': 'No Groq API key configured. Set GROQ_API_KEY in backend/.env'})}\n\n"
+        yield f"data: {json.dumps({'type': 'error', 'error': 'No Groq API key configured. Check backend/.env'})}\n\n"
         return
 
     api_key = keys[0]
@@ -192,9 +176,9 @@ async def get_groq_reply_stream(
     payload = {
         "model": settings.groq_model,
         "messages": messages,
-        "temperature": 0.75,
+        "temperature": 0.7,
         "stream": True,
-        "max_tokens": 1000,
+        "max_tokens": 1500,
     }
 
     accumulated = ""
@@ -210,14 +194,14 @@ async def get_groq_reply_stream(
                 json=payload,
             ) as response:
                 if response.status_code == 429:
-                    yield f"data: {json.dumps({'type': 'error', 'error': 'Groq rate-limited. Retrying shortly...'})}\n\n"
+                    yield f"data: {json.dumps({'type': 'error', 'error': 'Arc Reactor overloaded: Groq rate-limited.'})}\n\n"
                     return
                 if response.status_code in (401, 403):
-                    yield f"data: {json.dumps({'type': 'error', 'error': 'Invalid Groq API Key.'})}\n\n"
+                    yield f"data: {json.dumps({'type': 'error', 'error': 'Invalid API Key configuration.'})}\n\n"
                     return
                 if not response.is_success:
                     err_body = await response.aread()
-                    yield f"data: {json.dumps({'type': 'error', 'error': f'Groq error: {err_body.decode()}'})}\n\n"
+                    yield f"data: {json.dumps({'type': 'error', 'error': f'Stark Net error: {err_body.decode()}'})}\n\n"
                     return
 
                 async for line in response.aiter_lines():
@@ -242,8 +226,6 @@ async def get_groq_reply_stream(
 
                             if safe_boundary > emitted_length:
                                 to_emit = accumulated[emitted_length:safe_boundary]
-                                # Strip any raw asterisks from stream chunks
-                                to_emit = to_emit.replace("**", "").replace("*", "")
                                 emitted_length = safe_boundary
                                 yield f"data: {json.dumps({'type': 'chunk', 'content': to_emit})}\n\n"
                     except Exception:
@@ -251,11 +233,11 @@ async def get_groq_reply_stream(
 
             clean_text, emotion = _parse_reply_and_emotion(accumulated)
             if len(clean_text) > emitted_length:
-                remaining_safe = clean_text[emitted_length:].replace("**", "").replace("*", "")
+                remaining_safe = clean_text[emitted_length:]
                 yield f"data: {json.dumps({'type': 'chunk', 'content': remaining_safe})}\n\n"
 
             yield f"data: {json.dumps({'type': 'emotion', 'emotion': emotion.model_dump()})}\n\n"
             yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
         except Exception as exc:
-            yield f"data: {json.dumps({'type': 'error', 'error': f'Groq stream interrupted: {str(exc)}'})}\n\n"
+            yield f"data: {json.dumps({'type': 'error', 'error': f'ARCIS transmission interrupted: {str(exc)}'})}\n\n"

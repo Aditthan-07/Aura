@@ -1,71 +1,58 @@
-# Aura — Backend
+# ARCIS — Backend
 
-FastAPI service that powers Aura's chat + emotion reading.
+FastAPI service powering the Marvel AI intelligence engine and streaming responses for ARCIS (Autonomous Reactor Core Intelligent System).
 
 ## Structure
 
 ```
 app/
-├── main.py            FastAPI app, CORS, health check
-├── routes/chat.py      POST /api/chat
-├── services/llm_service.py   Anthropic API call, forced tool-use
-├── models/schemas.py   Pydantic request/response contracts
-└── core/config.py      Env-based settings
+├── main.py                   # FastAPI initialization, CORS, and health check
+├── routes/chat.py             # POST /api/chat and POST /api/chat/stream endpoints
+├── services/
+│   ├── groq_service.py       # High-speed LLM client with dedicated Marvel MCU prompt
+│   └── api_key_manager.py    # Key rotation and rate limit handling
+├── models/schemas.py         # Request and response models
+└── core/config.py            # Environment settings and provider configs
 ```
 
 ## Setup
 
 ```bash
 cd backend
+
+# Create and activate virtual environment
 python -m venv .venv
+# Windows PowerShell:
 .venv\Scripts\Activate.ps1
+# Linux / macOS:
+source .venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Configure environment
 cp .env.example .env
-uvicorn app.main:app --reload
+# Set GROQ_API_KEY (or GEMINI_API_KEY / OPENAI_API_KEY) in .env
+
+# Launch development server (port 8001)
+uvicorn app.main:app --port 8001 --reload
 ```
 
-Server runs at `http://localhost:8000`. Interactive API docs at
-`http://localhost:8000/docs`.
+Interactive API documentation available at `http://localhost:8001/docs`.
 
-## API
+## API Endpoints
 
-### `POST /api/chat`
-
-**Request**
-```json
-{
-  "message": "hey, how's it going",
-  "history": [
-    { "role": "user", "content": "..." },
-    { "role": "assistant", "content": "..." }
-  ]
-}
-```
-
-**Response**
-```json
-{
-  "reply": "Going well — what's on your mind?",
-  "emotion": { "label": "curious", "valence": 0.3, "arousal": 0.4 }
-}
-```
-
-`history` is the prior conversation (excluding the new `message`); the
-frontend owns and sends the full running history each turn since the
-backend is stateless. It's trimmed server-side to the last
-`MAX_HISTORY_MESSAGES` turns (default 20) before being sent to the model.
+### `POST /api/chat/stream` (SSE Streaming)
+Streams token chunks and emotion analysis in Server-Sent Events (SSE) format:
+- `data: {"type": "chunk", "content": "..."}`
+- `data: {"type": "emotion", "emotion": {"label": "calm", "valence": 0.2, "arousal": 0.4}}`
+- `data: {"type": "done"}`
 
 ### `GET /health`
+Returns health check status:
+```json
+{
+  "status": "ok"
+}
+```
 
-Returns `{"status": "ok"}` — useful for uptime checks / container health
-probes if you deploy this.
-
-## Why forced tool-use instead of "reply in JSON"
-
-Asking a model to "respond only in valid JSON" is fragile — it can wrap the
-JSON in prose, use inconsistent field names, or produce malformed output
-under load. Forcing a tool call (`tool_choice: {"type": "tool", "name":
-"respond"}`) makes the schema part of the API contract: the SDK won't
-return a tool_use block unless the arguments match the declared JSON
-schema, so `llm_service.py` can parse `tool_use.input` directly with no
-regex or `try/except json.loads` defensive code.

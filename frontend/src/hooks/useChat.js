@@ -270,7 +270,7 @@ export function useChat() {
               err?.message ||
               (isRateLimit
                 ? "The AI service is temporarily rate-limited. Retrying shortly..."
-                : "Unable to reach Aura. Your conversation is preserved.");
+                : "Unable to reach ARCIS. Your conversation is preserved.");
 
             setError({ message, isRateLimit });
           },

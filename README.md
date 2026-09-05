@@ -1,68 +1,142 @@
-# Aura
+# ARCIS — Autonomous Reactor Core Intelligent System ⚡
 
-A chatbot companion whose 3D avatar isn't a face — it's an abstract, glowing
-orb that morphs in real time with the emotional tone of the conversation.
+[![Marvel MCU Companion](https://img.shields.io/badge/Marvel-MCU%20Intelligence-red.svg)](https://marvel.com)
+[![Stark Industries](https://img.shields.io/badge/Stark%20Tech-Mark%20VII%20Blueprint-00f0ff.svg)](#)
+[![FastAPI Backend](https://img.shields.io/badge/Backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com)
+[![React + Vite](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61dafb.svg)](https://vitejs.dev)
 
-Instead of bolting a separate sentiment-analysis model onto a chat UI, Aura
-asks the LLM itself to report how it's reading the exchange — valence
-(positive/negative), arousal (calm/energized), and a label — on the same
-turn it replies. The orb's color, turbulence, and motion are a direct,
-continuous function of that reading. The exact numbers are also shown as a
-small monospace readout, so the visual is explainable, not just decorative.
+**ARCIS** is an immersive, futuristic AI companion designed exclusively for Marvel and MCU fans. Engineered with a Stark Industries holographic HUD aesthetic, ARCIS combines an authentic interactive Iron Man blueprint interface with deep, structured Marvel intelligence.
 
-## Stack
+---
 
-- **Backend** — FastAPI (Python). One endpoint, `/api/chat`, that calls the
-  Anthropic API with forced tool-use so the structured emotion reading is
-  guaranteed valid on every response, not just hoped-for JSON.
-- **Frontend** — React + Vite + `@react-three/fiber`. The orb is a custom
-  GLSL shader (simplex-noise vertex displacement + fresnel rim glow) driven
-  by uniforms that smoothly lerp toward the latest emotion reading.
+## ✨ Features
+
+- **🦾 Dedicated Dual-Panel Split Interface**:
+  - **Left Panel (Holographic Visualization)**: Authentic Iron Man Mark VII blueprint artwork featuring interactive glowing cyan eye slits, a multi-tier mechanically rotating Arc Reactor core (stator coils, turbine gears, unibeam flare), CAD calipers, live telemetry status bars, and subtle 3D mouse parallax tracking.
+  - **Right Panel (Command Center)**: Dedicated Marvel AI chat console, real-time token-by-token streaming, tactical directive chips, and mission history logs.
+- **🌌 Comprehensive Marvel & MCU Intelligence**:
+  - Deep lore coverage spanning Earth-616 comics and MCU Phases 1 through 6.
+  - Stark Tech engineering breakdowns (Mark I through Mark LXXXV, nanotech, repulsors, unibeam, vibranium integration).
+  - Multiverse timeline analysis, TVA mechanics, sacred timeline incursions, and comic-to-screen comparisons.
+  - Clean, structured markdown responses with tactical headers and bulleted breakdowns.
+- **🎙️ Speech & Voice Interaction**:
+  - Voice input with live speech recognition.
+  - Speech synthesis output synchronized with the Arc Reactor and eye slit illumination pulses.
+- **📜 Mission Logs & Session Management**:
+  - Instant session switching, multi-mission history, and clean conversational state management.
+  - One-click New Mission initialization.
+
+---
+
+## 🛠️ Architecture & Tech Stack
 
 ```
-aura/
-├── backend/    FastAPI app — see backend/README.md
-└── frontend/   React + Three.js app — see frontend/README.md
+Arcis/
+├── backend/
+│   ├── app/
+│   │   ├── main.py              # FastAPI application, CORS, and health check
+│   │   ├── routes/chat.py       # Streaming SSE chat endpoints
+│   │   ├── services/
+│   │   │   ├── groq_service.py  # High-speed LLM engine with ARCIS Marvel system prompt
+│   │   │   └── api_key_manager.py
+│   │   ├── models/schemas.py    # Request & response contracts
+│   │   └── core/config.py       # Configuration and provider settings
+│   └── requirements.txt
+│
+└── frontend/
+    ├── src/
+    │   ├── App.jsx              # Dual-panel split layout & state orchestration
+    │   ├── components/
+    │   │   ├── Avatar/
+    │   │   │   └── IronManAvatar.jsx   # Holographic blueprint, eyes & rotating Arc Reactor
+    │   │   ├── Chat/
+    │   │   │   ├── ChatPanel.jsx       # Chat container & quick directives
+    │   │   │   ├── MessageList.jsx     # High-contrast holographic message bubbles
+    │   │   │   └── MessageInput.jsx    # Translucent command input console
+    │   │   └── Sidebar/
+    │   │       └── SessionSidebar.jsx  # Collapsible mission logs drawer
+    │   ├── hooks/useChat.js     # State management, streaming handlers & storage
+    │   ├── services/
+    │   │   ├── api.js           # Fetch & SSE streaming client
+    │   │   ├── chatStorage.js   # Local mission session persistence
+    │   │   └── voiceService.js  # Speech recognition & audio synthesis
+    │   └── styles/
+    │       ├── index.css        # Stark HUD theme, cyan neon tokens, and layout
+    │       └── ironman.css      # Blueprint animations, Arc Reactor shaders, and parallax
+    └── package.json
 ```
 
-## Quick start
+---
 
-You'll need an [Gemini API key]
+## 🚀 Quick Start
 
-**1. Backend**
+### 1. Prerequisites
+- **Python 3.10+**
+- **Node.js 18+** & **npm**
+- An active API key (Groq, OpenAI, or Gemini)
+
+### 2. Backend Setup
+
 ```bash
 cd backend
-python3 -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+
+# Create and activate virtual environment
+python -m venv .venv
+# Windows PowerShell:
+.venv\Scripts\Activate.ps1
+# Linux / macOS:
+source .venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
-cp .env.example .env      
-uvicorn app.main:app --reload
+
+# Configure environment
+cp .env.example .env
+# Open .env and add your GROQ_API_KEY (or GEMINI_API_KEY / OPENAI_API_KEY)
+
+# Start backend server (runs on port 8001)
+uvicorn app.main:app --port 8001 --reload
 ```
 
-**2. Frontend** (in a second terminal)
+### 3. Frontend Setup
+
+In a separate terminal:
+
 ```bash
 cd frontend
+
+# Install packages
 npm install
-cp .env.example .env        # defaults already point at localhost:8000
+
+# Configure environment
+cp .env.example .env
+
+# Launch Vite development server (runs on port 5173)
 npm run dev
 ```
 
-Open the URL Vite prints (typically `http://localhost:5173`) and talk to
-Aura. Watch the orb.
+Open your browser at `http://localhost:5173` to initialize Protocol ARCIS.
 
-## Design notes
+---
 
-The orb's color is a continuous gradient over valence — indigo (negative)
-through teal (neutral) to amber (positive) — rather than a lookup table of
-discrete "mood colors," so it reflects a real number, not a guess at a
-category. Arousal separately drives animation speed, surface turbulence,
-and glow intensity. Both values are smoothed frame-to-frame so emotional
-shifts read as a mood change rather than a jump cut.
+## 🎯 Quick Directives
 
-## Extending it
+ARCIS features built-in tactical quick directives:
+- `⚡ Stark Tech Breakdown` — In-depth schematics of armor, nanotech, and arc reactor physics.
+- `🌌 Multiverse Timeline` — Branch analyses, nexus events, incursions, and the TVA.
+- `🛡️ Vibranium vs Adamantium` — Molecular composition, origins, and combat capabilities.
+- `🎬 MCU Phase Guide` — Chronological breakdowns, key arcs, and post-credit connections.
 
-A few natural next steps if you want to keep building:
-- Persist conversation history (currently in-memory, lost on refresh)
-- Stream replies token-by-token instead of waiting for the full response
-- Add voice input/output, with the orb's arousal also reacting to speech
-  amplitude in real time
-- Swap the LLM provider behind `backend/app/services/llm_service.py`
+---
+
+## 🔒 Security & Privacy
+
+- All API keys are securely managed on the backend and never exposed to the client.
+- Mission sessions are stored locally in client storage with zero external tracking.
+
+---
+
+## 📜 License
+
+MIT License — Built with ❤️ for Marvel fans and Stark Industries enthusiasts.
+

@@ -1,4 +1,4 @@
-﻿function formatTimestamp(ts) {
+function formatTimestamp(ts) {
   if (!ts) return "";
   const d = new Date(ts);
   const now = new Date();
@@ -12,7 +12,7 @@
 export default function SessionSidebar({
   isOpen,
   onClose,
-  sessions,
+  sessions = [],
   currentSessionId,
   onSelectSession,
   onNewSession,

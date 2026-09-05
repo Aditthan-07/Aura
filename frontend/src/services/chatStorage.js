@@ -1,13 +1,13 @@
-﻿/**
+/**
  * chatStorage.js
  * Persistent chat history management backed by localStorage.
  * Supports multi-session management, auto-titling, timestamps, and error recovery.
  */
 
 const STORAGE_KEYS = {
-  SESSIONS: "aura_chat_sessions_v1",
-  ACTIVE_SESSION_ID: "aura_active_session_id_v1",
-  SAVED_MOOD: "aura_saved_mood_v1",
+  SESSIONS: "arcis_chat_sessions_v2",
+  ACTIVE_SESSION_ID: "arcis_active_session_id_v2",
+  SAVED_MOOD: "arcis_saved_mood_v2",
 };
 
 function generateId() {

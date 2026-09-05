@@ -1,6 +1,6 @@
 /**
  * api.js
- * Frontend HTTP & SSE streaming client for Aura chat API.
+ * Frontend HTTP & SSE streaming client for ARCIS Marvel AI chat API.
  */
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
@@ -25,7 +25,7 @@ export async function sendMessage(message, history, mood = "neutral", signal = n
 
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
-      const detail = body.detail ?? "Something went wrong reaching Aura.";
+      const detail = body.detail ?? "Something went wrong communicating with ARCIS.";
       throw new ApiError(detail, response.status, response.status === 429);
     }
 

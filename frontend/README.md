@@ -1,47 +1,31 @@
-# Aura — Frontend
+# ARCIS — Frontend
 
-React + Vite + Three.js client.
+Modern React + Vite frontend client for ARCIS (Autonomous Reactor Core Intelligent System).
 
-## Structure
+## Key Components
 
-```
-src/
-├── App.jsx                          Layout: orb layer + header + chat layer
-├── components/
-│   ├── Avatar/
-│   │   ├── AuraOrb.jsx              R3F Canvas + the orb mesh/animation
-│   │   └── orbShaders.js            Vertex/fragment GLSL
-│   ├── Chat/
-│   │   ├── ChatPanel.jsx
-│   │   ├── MessageList.jsx
-│   │   └── MessageInput.jsx
-│   └── EmotionReadout.jsx           Live valence/arousal/label readout
-├── hooks/useChat.js                 Conversation state + API calls
-├── services/api.js                  fetch wrapper for the backend
-└── styles/index.css                 Design tokens + all styling
-```
+- **Dual-Panel Split-Screen Architecture**:
+  - `src/components/Avatar/IronManAvatar.jsx`: Dedicated Stark Industries Mark VII holographic blueprint panel with interactive cyan glowing eye slits, a multi-ring mechanically rotating Arc Reactor core, CAD calipers, and 3D parallax tracking.
+  - `src/components/Chat/ChatPanel.jsx`: Dedicated Marvel AI command console with tactical quick directives, token-by-token streaming, and Markdown parsing.
+  - `src/components/Sidebar/SessionSidebar.jsx`: Collapsible mission logs drawer for managing multi-session conversation history.
+- **State & Communication**:
+  - `src/hooks/useChat.js`: Orchestrates chat messages, emotion feedback, streaming SSE consumption, and speech synchronization.
+  - `src/services/api.js`: Server-sent events (SSE) streaming client.
+  - `src/services/chatStorage.js`: Multi-mission localStorage persistence.
+  - `src/services/voiceService.js`: Web Speech API integration for tactical voice input and speech synthesis.
 
-## Setup
+## Quick Start
 
 ```bash
-cd frontend
+# Install dependencies
 npm install
+
+# Configure environment
 cp .env.example .env
+
+# Run development server
 npm run dev
 ```
 
-## How the orb animates
+Server runs by default at `http://localhost:5173`.
 
-`AuraOrb.jsx` keeps the orb's *displayed* color/arousal in a ref that's
-lerped toward the latest emotion reading every frame (`useFrame`), rather
-than snapping instantly — so a shift from "calm" to "excited" reads as a
-mood change over ~1-2 seconds, not a jump cut. The shader itself
-(`orbShaders.js`) uses 3D simplex noise to displace an icosahedron's
-vertices; arousal controls the noise frequency, amplitude, and time-scroll
-speed, so higher arousal looks more turbulent and faster-moving, not just
-"more saturated."
-
-Color is computed in JS (`valenceToColor`) as a 3-stop gradient — indigo →
-teal → amber — and passed to the shader as a single `u_color` uniform, kept
-deliberately simple so the color logic lives in one readable place instead
-of being duplicated in GLSL.
