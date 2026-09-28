@@ -9,7 +9,9 @@
     "@react-navigation/bottom-tabs": "^7.19.2",
     "@react-navigation/native": "^7.4.1",
     "expo": "~57.0.25",
+    "expo-font": "~57.0.4",
     "expo-notifications": "~57.0.21",
+    "expo-splash-screen": "~57.0.9",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -24,8 +26,5 @@
     "ios": "expo start --ios",
     "web": "expo start --web"
   },
-  "private": true,
-  "devDependencies": {
-    "eas-cli": "^24.8.0"
-  }
+  "private": true
 }
