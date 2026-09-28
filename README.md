@@ -1,42 +1,85 @@
 # Aura
 
-Aura is a mobile habit and productivity tracking application designed to help users structure their daily routines, schedule time-bound tasks, and receive automatic advance reminders.
+Aura is a mobile habit and productivity tracking application designed to help individuals structure their daily workflow, maintain consistent routines, and track time-sensitive commitments. Built with React Native and Expo, Aura emphasizes a clean, distraction-free user experience, robust offline persistence, and automated proactive reminders.
 
 ---
 
-## Interface Overview
+## Application Preview
 
-| Today's Agenda | Task Scheduling |
-| :---: | :---: |
-| <img src="assets/screenshots/today.png" width="300" alt="Today's Agenda Screen" /> | <img src="assets/screenshots/schedule.png" width="300" alt="Task Scheduling Screen" /> |
+<div align="center">
+  <table>
+    <tr>
+      <td align="center" width="50%">
+        <strong>Today's Agenda</strong>
+      </td>
+      <td align="center" width="50%">
+        <strong>Task Scheduling & Alarms</strong>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" valign="top">
+        <img src="assets/screenshots/today.png" width="340" alt="Today's Agenda Screen" />
+      </td>
+      <td align="center" valign="top">
+        <img src="assets/screenshots/schedule.png" width="340" alt="Task Scheduling Screen" />
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <sub>Real-time task tracking with instant completion toggles</sub>
+      </td>
+      <td align="center">
+        <sub>Time-bound scheduling with automated 30-minute advance notifications</sub>
+      </td>
+    </tr>
+  </table>
+</div>
 
 ---
 
-## Core Capabilities
+## Architecture and How It Works
 
-- **User-Defined Task Management:** Create, track, and complete personal tasks and habits without predefined templates.
-- **Automated Advance Reminders:** Schedules local notifications 30 minutes before a task's set deadline.
-- **Mobile-First Layout:** Structured around bottom tab navigation, dedicated task cards, and straightforward status toggling.
-- **Local Persistence:** Data is retained locally on the device using AsyncStorage without external server dependencies.
-- **Daily Analytics:** Displays current task distribution between pending and completed states.
+Aura is engineered around three primary design principles:
+
+### 1. User-Directed Task Management
+Unlike applications that force pre-configured templates or dummy data, Aura initializes with an entirely clean state. Users define their own tasks, set target dates, and assign specific deadlines. Tasks display immediate visual feedback through status badges and completion styles.
+
+### 2. Proactive Advance Alarms
+Time-bound commitments require timely intervention. Aura calculates target trigger times exactly 30 minutes before any scheduled task and queues an operating-system-level notification via `expo-notifications`. Reminders fire reliably regardless of whether the application is active, backgrounded, or closed.
+
+### 3. Local-First Data Sovereignty
+All user records are persisted directly on the client device using `@react-native-async-storage/async-storage`. This eliminates network latency, guarantees 100% offline availability, and ensures user data never leaves the device.
+
+---
+
+## Key Features
+
+- **Daily Agenda Dashboard:** Consolidated view of daily tasks, live progress meters, and dynamic completion percentages.
+- **Flexible Scheduling:** Dedicated scheduling interface with quick-selection chips for dates (Today, Tomorrow) and preset time blocks, alongside custom time inputs.
+- **Interactive State Toggling:** Single-tap completion toggles with smooth visual transitions, dimming, and strike-through formatting.
+- **Discipline Analytics:** Performance tracking including total tasks managed, completion rates, and consecutive active-day streak counts.
+- **Filtered Task History:** Comprehensive review tabs allowing users to inspect all, pending, or completed tasks independently.
 
 ---
 
 ## Technology Stack
 
-- **Framework:** React Native with Expo
-- **Navigation:** React Navigation (Bottom Tabs)
-- **Local Storage:** AsyncStorage
-- **Notifications:** Expo Notifications
-- **Language:** JavaScript / TypeScript
+| Layer | Technology | Purpose |
+| :--- | :--- | :--- |
+| **UI Framework** | React Native (Expo SDK 57) | Cross-platform mobile development (iOS, Android, Web) |
+| **Navigation** | React Navigation v7 | Bottom tab routing and screen transition management |
+| **Local Storage** | AsyncStorage | Offline key-value task persistence |
+| **Alarms & Reminders** | Expo Notifications | OS-level scheduled background alarms and channels |
+| **Design & Layout** | React Native Stylesheet | Mobile-first design system with responsive viewport constraints |
 
 ---
 
-## Setup and Execution
+## Getting Started
 
 ### Prerequisites
-- Node.js (version 18 or higher)
-- npm or yarn
+- Node.js (version 18.0.0 or higher)
+- npm (version 9.0.0 or higher) or yarn
+- Expo Go mobile application (available on iOS App Store and Google Play Store)
 
 ### Installation
 
@@ -51,21 +94,22 @@ Aura is a mobile habit and productivity tracking application designed to help us
    npm install
    ```
 
-### Running the Application
+### Execution
 
-- **Mobile (Expo Go):**
+- **Development Server (Mobile Devices via Expo Go):**
   ```bash
   npx expo start
   ```
-  Scan the terminal QR code using Expo Go on Android or the native Camera app on iOS.
+  Scan the QR code displayed in the terminal using Expo Go on Android or the native Camera app on iOS.
 
-- **Web Browser:**
+- **Web Preview:**
   ```bash
   npx expo start --web
   ```
+  Access the mobile preview at `http://localhost:8081`.
 
 ---
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details.
