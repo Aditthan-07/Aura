@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Expo & Build artifacts
+.expo/
+.next/
+dist/
+web-build/
+*.apk
+*.aab
+
+# Environment & credentials
+.env*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs & temp
+npm-debug.*
+yarn-debug.*
+yarn-error.*
