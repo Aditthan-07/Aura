@@ -31,16 +31,17 @@ export const saveTasks = async (tasks) => {
 
 /**
  * Add a new task to storage
- * @param {Object} taskData { title, date, time, notificationId }
+ * @param {Object} taskData { title, date, time, priority, notificationId }
  * @returns {Promise<Object>} The created task object
  */
-export const addTask = async ({ title, date, time, notificationId = null }) => {
+export const addTask = async ({ title, date, time, priority = 'medium', notificationId = null }) => {
   const tasks = await getTasks();
   const newTask = {
     id: Date.now().toString() + '_' + Math.random().toString(36).substring(2, 7),
     title: title.trim(),
     date: date || new Date().toISOString().split('T')[0],
     time: time || '12:00 PM',
+    priority: priority || 'medium', // 'high' | 'medium' | 'low'
     status: 'pending', // 'pending' | 'completed'
     notificationId,
     createdAt: new Date().toISOString(),
@@ -48,6 +49,20 @@ export const addTask = async ({ title, date, time, notificationId = null }) => {
   const updatedTasks = [newTask, ...tasks];
   await saveTasks(updatedTasks);
   return newTask;
+};
+
+/**
+ * Sort tasks with high priority first, followed by medium and low
+ * @param {Array} tasks 
+ * @returns {Array} Sorted copy of tasks
+ */
+export const sortTasksByPriority = (tasks = []) => {
+  const priorityWeight = { high: 3, medium: 2, low: 1 };
+  return [...tasks].sort((a, b) => {
+    const weightA = priorityWeight[a.priority] || 2;
+    const weightB = priorityWeight[b.priority] || 2;
+    return weightB - weightA;
+  });
 };
 
 /**
@@ -105,6 +120,7 @@ export const getStats = async () => {
   const completed = tasks.filter((t) => t.status === 'completed').length;
   const pending = total - completed;
   const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const highPriority = tasks.filter((t) => t.priority === 'high' && t.status === 'pending').length;
 
   // Calculate distinct active days
   const activeDays = new Set(tasks.map((t) => t.date)).size;
@@ -114,6 +130,7 @@ export const getStats = async () => {
     pending,
     completed,
     completionRate,
+    highPriority,
     streak: activeDays,
   };
 };
