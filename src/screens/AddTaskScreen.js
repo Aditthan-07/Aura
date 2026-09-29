@@ -30,6 +30,7 @@ export default function AddTaskScreen() {
   const [title, setTitle] = useState('');
   const [selectedDate, setSelectedDate] = useState(getTodayISO());
   const [selectedTime, setSelectedTime] = useState('06:00 PM');
+  const [priority, setPriority] = useState('medium');
   const [customTime, setCustomTime] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -57,12 +58,14 @@ export default function AddTaskScreen() {
         title: title.trim(),
         date: selectedDate,
         time: finalTime,
+        priority,
         notificationId,
       });
 
       // 3. Reset and navigate back to Agenda
       setTitle('');
       setCustomTime('');
+      setPriority('medium');
       setIsSubmitting(false);
       navigation.navigate('Today');
     } catch (e) {
@@ -154,6 +157,84 @@ export default function AddTaskScreen() {
                   ]}
                 >
                   Tomorrow
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Priority Level Selection */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>PRIORITY LEVEL</Text>
+            <View style={styles.chipsRow}>
+              <TouchableOpacity
+                style={[
+                  styles.priorityChip,
+                  priority === 'high' && styles.priorityChipHighActive,
+                ]}
+                onPress={() => setPriority('high')}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name="flame"
+                  size={16}
+                  color={priority === 'high' ? '#EF4444' : '#94A3B8'}
+                  style={{ marginRight: 6 }}
+                />
+                <Text
+                  style={[
+                    styles.priorityChipText,
+                    priority === 'high' && styles.priorityChipTextHighActive,
+                  ]}
+                >
+                  High
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.priorityChip,
+                  priority === 'medium' && styles.priorityChipMediumActive,
+                ]}
+                onPress={() => setPriority('medium')}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name="flash"
+                  size={16}
+                  color={priority === 'medium' ? '#F59E0B' : '#94A3B8'}
+                  style={{ marginRight: 6 }}
+                />
+                <Text
+                  style={[
+                    styles.priorityChipText,
+                    priority === 'medium' && styles.priorityChipTextMediumActive,
+                  ]}
+                >
+                  Medium
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.priorityChip,
+                  priority === 'low' && styles.priorityChipLowActive,
+                ]}
+                onPress={() => setPriority('low')}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name="leaf"
+                  size={16}
+                  color={priority === 'low' ? '#10B981' : '#94A3B8'}
+                  style={{ marginRight: 6 }}
+                />
+                <Text
+                  style={[
+                    styles.priorityChipText,
+                    priority === 'low' && styles.priorityChipTextLowActive,
+                  ]}
+                >
+                  Low
                 </Text>
               </TouchableOpacity>
             </View>
@@ -311,6 +392,47 @@ const styles = StyleSheet.create({
   },
   chipTextActive: {
     color: '#FFFFFF',
+  },
+  priorityChip: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+  },
+  priorityChipHighActive: {
+    backgroundColor: '#FEF2F2',
+    borderColor: '#EF4444',
+  },
+  priorityChipMediumActive: {
+    backgroundColor: '#FFFBEB',
+    borderColor: '#F59E0B',
+  },
+  priorityChipLowActive: {
+    backgroundColor: '#ECFDF5',
+    borderColor: '#10B981',
+  },
+  priorityChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  priorityChipTextHighActive: {
+    color: '#EF4444',
+    fontWeight: '700',
+  },
+  priorityChipTextMediumActive: {
+    color: '#D97706',
+    fontWeight: '700',
+  },
+  priorityChipTextLowActive: {
+    color: '#059669',
+    fontWeight: '700',
   },
   timeChipsWrap: {
     flexDirection: 'row',
