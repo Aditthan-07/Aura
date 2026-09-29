@@ -55,9 +55,12 @@ All user records are persisted directly on the client device using `@react-nativ
 ## Key Features
 
 - **Daily Agenda Dashboard:** Consolidated view of daily tasks, live progress meters, and dynamic completion percentages.
-- **Flexible Scheduling:** Dedicated scheduling interface with quick-selection chips for dates (Today, Tomorrow) and preset time blocks, alongside custom time inputs.
+- **Priority Tiering & Sorting:** Classify commitments into High (🔥), Medium (⚡), and Low (🌿) priorities with automatic priority-weighted ordering.
+- **Dynamic Agenda Filtering:** Instant filtering on Today's Agenda between All, High Priority, and Pending tasks.
+- **Flexible Scheduling:** Dedicated scheduling interface with quick-selection chips for dates (Today, Tomorrow), priority selectors, and preset time blocks, alongside custom time inputs.
 - **Interactive State Toggling:** Single-tap completion toggles with smooth visual transitions, dimming, and strike-through formatting.
-- **Discipline Analytics:** Performance tracking including total tasks managed, completion rates, and consecutive active-day streak counts.
+- **Smart Notification Lifecycle:** Native OS-level 30-minute advance alarms with automatic cancellation when tasks are completed or removed.
+- **Discipline Analytics & Backup:** Performance tracking including total tasks managed, completion rates, active-day streak counts, and offline JSON backup verification.
 - **Filtered Task History:** Comprehensive review tabs allowing users to inspect all, pending, or completed tasks independently.
 
 ---
