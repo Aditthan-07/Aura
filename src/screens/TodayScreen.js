@@ -12,6 +12,7 @@ import {
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { getTasks, toggleTaskStatus, deleteTask, sortTasksByPriority } from '../services/storage';
+import { cancelTaskReminder } from '../services/notifications';
 
 export default function TodayScreen() {
   const navigation = useNavigation();
@@ -44,13 +45,21 @@ export default function TodayScreen() {
   };
 
   const handleToggle = async (id) => {
+    const targetTask = tasks.find((t) => t.id === id);
+    if (targetTask?.status === 'pending' && targetTask?.notificationId) {
+      await cancelTaskReminder(targetTask.notificationId);
+    }
     const updated = await toggleTaskStatus(id);
-    setTasks(updated);
+    setTasks(sortTasksByPriority(updated));
   };
 
   const handleDelete = async (id) => {
+    const targetTask = tasks.find((t) => t.id === id);
+    if (targetTask?.notificationId) {
+      await cancelTaskReminder(targetTask.notificationId);
+    }
     const remaining = await deleteTask(id);
-    setTasks(remaining);
+    setTasks(sortTasksByPriority(remaining));
   };
 
   const totalCount = tasks.length;

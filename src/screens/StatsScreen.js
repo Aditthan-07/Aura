@@ -11,6 +11,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { getTasks, getStats, clearTasks } from '../services/storage';
+import { cancelAllTaskReminders } from '../services/notifications';
 
 export default function StatsScreen() {
   const [tasks, setTasks] = useState([]);
@@ -46,6 +47,7 @@ export default function StatsScreen() {
           text: 'Reset',
           style: 'destructive',
           onPress: async () => {
+            await cancelAllTaskReminders();
             await clearTasks();
             await loadData();
           },

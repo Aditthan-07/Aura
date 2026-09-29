@@ -150,3 +150,15 @@ export const cancelTaskReminder = async (notificationId) => {
     console.warn('Failed to cancel notification:', e);
   }
 };
+
+/**
+ * Cancel all scheduled local notifications (used during resets)
+ */
+export const cancelAllTaskReminders = async () => {
+  if (Platform.OS === 'web') return;
+  try {
+    await Notifications.cancelAllScheduledNotificationsAsync();
+  } catch (e) {
+    console.warn('Failed to cancel all notifications:', e);
+  }
+};
